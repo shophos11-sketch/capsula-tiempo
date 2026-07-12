@@ -1,0 +1,39 @@
+/* Estilos generales para la computadora */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    color: #333;
+}
+
+/* El contenedor usará "Flexbox", que alinea las tarjetas de lado a lado */
+.contenedor {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.tarjeta {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    width: 45%; /* En computadora ocupan casi la mitad de la pantalla cada una */
+}
+
+/* 📱 LA REGLA RESPONSIVE (MEDIA QUERY) 📱 */
+/* Si la pantalla mide 600 píxeles o menos (como un celular)... */
+@media (max-width: 600px) {
+    .contenedor {
+        flex-direction: column; /* Las tarjetas ya no van de lado a lado, sino una abajo de la otra */
+    }
+    
+    .tarjeta {
+        width: 100%; /* Ahora ocupan todo el ancho del celular */
+    }
+}
