@@ -7,23 +7,22 @@ import { MessageCircle } from "lucide-react";
 import { Product } from "../types/product";
 import Airtable from "airtable";
 
-// 🔌 Conexión segura con Airtable
+// 🔌 Conexión segura con Airtable intacta
 const base = new Airtable({ apiKey: import.meta.env.VITE_AIRTABLE_TOKEN })
   .base(import.meta.env.VITE_AIRTABLE_BASE_ID);
 
 export function Catalog() {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Oculto por defecto en celular
-  
-  // Guardamos tanto la posición X como la Y para evitar que el scroll vertical interfiera
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
   const { filters, setFilters, filteredProducts, categoryCounts, resetFilters } =
     useProductFilters(dbProducts);
 
-  // 📡 Traemos tus productos de Airtable
+  // 📡 Hook de Airtable restablecido
   useEffect(() => {
     const cargarProductosParaFiltros = async () => {
       try {
@@ -50,29 +49,23 @@ export function Catalog() {
     cargarProductosParaFiltros();
   }, []);
 
-  // 📱 Captura de inicio del toque en celular
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
   };
 
-  // 📱 Captura del movimiento del dedo para evitar conflictos con el scroll de la página
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartX.current === null || touchStartY.current === null) return;
-
     const currentX = e.touches[0].clientX;
     const currentY = e.touches[0].clientY;
 
     const diffX = currentX - touchStartX.current;
     const diffY = currentY - touchStartY.current;
 
-    // Si el movimiento horizontal es mayor que el vertical, asumimos que quiere filtrar
+    // Solo disparamos el gesto si es un movimiento prioritariamente horizontal
     if (Math.abs(diffX) > Math.abs(diffY)) {
-      if (diffX > 40) {
-        setSidebarOpen(true); // Deslizar derecha -> abre
-      } else if (diffX < -40) {
-        setSidebarOpen(false); // Deslizar izquierda -> cierra
-      }
+      if (diffX > 40) setSidebarOpen(true);
+      if (diffX < -40) setSidebarOpen(false);
     }
   };
 
@@ -87,7 +80,7 @@ export function Catalog() {
 
   return (
     <div
-      className="min-h-screen bg-background select-none"
+      className="min-h-screen bg-background"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -101,12 +94,11 @@ export function Catalog() {
       </header>
 
       <div className="flex w-full overflow-hidden">
-        {/* Contenedor de la Barra de Filtros animada (Se encoge al 50% en móvil si se abre) */}
+        {/* 💻 En PC: Siempre md:w-80 estático. 📱 En Celular: Se reparte 50% (w-1/2) o se oculta (w-0) */}
         <div
           className={[
-            "transition-all duration-300 shrink-0",
-            "md:w-80", // En PC mide 320px como siempre
-            sidebarOpen ? "w-1/2 opacity-100" : "w-0 opacity-0 pointer-events-none", // En móvil 50% de la pantalla o 0%
+            "overflow-hidden transition-all duration-300 shrink-0",
+            sidebarOpen ? "w-1/2 md:w-80" : "w-0 md:w-80",
           ].join(" ")}
         >
           <FilterSidebar
@@ -117,8 +109,8 @@ export function Catalog() {
           />
         </div>
 
-        {/* Contenedor de los Productos (Se reduce al 50% en móvil si la barra se abre) */}
-        <div className={sidebarOpen ? "w-1/2 transition-all duration-300" : "w-full transition-all duration-300"}>
+        {/* Contenedor dinámico del Grid para completar la división 50/50 */}
+        <div className={`transition-all duration-300 ${sidebarOpen ? "w-1/2 md:w-full" : "w-full"}`}>
           <ProductGrid products={filteredProducts} sidebarOpen={sidebarOpen} loadingFromParent={loading} />
         </div>
       </div>

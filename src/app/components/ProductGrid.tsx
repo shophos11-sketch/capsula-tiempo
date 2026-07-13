@@ -4,24 +4,9 @@ import { ProductCard } from './ProductCard';
 interface ProductGridProps {
   products: Product[];
   sidebarOpen?: boolean;
-  loadingFromParent?: boolean; // Mantenemos el estado de carga
 }
 
-export function ProductGrid({ 
-  products, 
-  sidebarOpen = false, 
-  loadingFromParent = false 
-}: ProductGridProps) {
-  
-  // Si Airtable está cargando, mostramos la pantalla de carga limpia
-  if (loadingFromParent) {
-    return (
-      <div className="flex-1 flex items-center justify-center min-h-96">
-        <p className="text-muted-foreground animate-pulse text-lg">Cargando catálogo...</p>
-      </div>
-    );
-  }
-
+export function ProductGrid({ products, sidebarOpen = false }: ProductGridProps) {
   if (products.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-96">
@@ -36,8 +21,8 @@ export function ProductGrid({
     );
   }
 
-  // 📱 Mobile: 1 columna cuando la barra está abierta (sidebarOpen === true)
-  //            2 columnas cuando está oculta (sidebarOpen === false)
+  // Mobile: 1 col when sidebar open, 2 cols when closed
+  // Desktop: responsive as before (md:2, lg:3, xl:4)
   const gridCols = sidebarOpen
     ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
     : "grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
