@@ -1,15 +1,52 @@
+import { useState, useEffect } from "react";
 import { FilterSidebar } from "../components/FilterSidebar";
 import { ProductGrid } from "../components/ProductGrid";
 import { useProductFilters } from "../hooks/useProductFilters";
-import { products } from "../data/products";
 import { Button } from "../components/ui/button";
 import { MessageCircle } from "lucide-react";
+import { Product } from "../types/product";
+import Airtable from "airtable";
+
+// 🔌 Conexión segura para calcular los contadores de filtros
+const base = new Airtable({ apiKey: import.meta.env.VITE_AIRTABLE_TOKEN })
+  .base(import.meta.env.VITE_AIRTABLE_BASE_ID);
 
 export function Catalog() {
+  const [dbProducts, setDbProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // 🔄 Conectamos los productos en vivo con el hook de filtros de Figma
   const { filters, setFilters, filteredProducts, categoryCounts, resetFilters } =
-    useProductFilters(products);
+    useProductFilters(dbProducts);
+
+  useEffect(() => {
+    const cargarProductosParaFiltros = async () => {
+      try {
+        const registros = await base('Productos').select({ view: 'Grid view' }).all();
+        const mapeados: Product[] = registros.map(reg => {
+          const imagenes = reg.fields['Imagen'] as any[];
+          return {
+            id: reg.id,
+            name: (reg.fields['Nombre'] as string) || 'Producto sin nombre',
+            price: (reg.fields['Precio'] as number) || 0,
+            category: (reg.fields['Categoría'] as string) || 'Sin categoría',
+            image: imagenes?.[0]?.url || 'https://via.placeholder.com/400',
+            description: (reg.fields['Descripción'] as string) || '',
+            stock: (reg.fields['Unidades disponibles'] as number) || 0,
+          };
+        });
+        setDbProducts(mapeados);
+      } catch (e) {
+        console.error("Error cargando filtros:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    cargarProductosParaFiltros();
+  }, []);
 
   const handleWhatsAppClick = () => {
+    // Puedes poner tu número de WhatsApp real aquí en el futuro ej: https://wa.me/51999999999
     window.open("https://wa.me/", "_blank");
   };
 
@@ -22,6 +59,7 @@ export function Catalog() {
           WhatsApp
         </Button>
       </header>
+      
       <div className="flex">
         <FilterSidebar
           filters={filters}
@@ -29,7 +67,9 @@ export function Catalog() {
           categoryCounts={categoryCounts}
           onResetFilters={resetFilters}
         />
-        <ProductGrid products={filteredProducts} />
+        
+        {/* Aquí le pasamos los productos ya filtrados por la barra lateral */}
+        <ProductGrid products={filteredProducts} loadingFromParent={loading} />
       </div>
     </div>
   );

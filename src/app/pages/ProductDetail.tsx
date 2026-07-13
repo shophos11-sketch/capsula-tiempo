@@ -1,18 +1,74 @@
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
-import { products } from "../data/products";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { Button } from "../components/ui/button";
 import { MessageCircle, ArrowLeft, Tag } from "lucide-react";
+import { Product } from "../types/product";
+import Airtable from "airtable";
+
+// 🔌 Conexión directa a Airtable
+const base = new Airtable({ apiKey: import.meta.env.VITE_AIRTABLE_TOKEN })
+  .base(import.meta.env.VITE_AIRTABLE_BASE_ID);
 
 export function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const product = products.find((p) => p.id === id);
+  
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const buscarProductoEnAirtable = async () => {
+      if (!id) return;
+      try {
+        // Buscamos el registro específico directamente por su ID de Airtable
+        const registro = await base('Productos').find(id);
+        
+        const imagenes = registro.fields['Imagen'] as any[];
+        const mapeado: Product = {
+          id: registro.id,
+          name: (registro.fields['Nombre'] as string) || 'Producto sin nombre',
+          price: (registro.fields['Precio'] as number) || 0,
+          category: (registro.fields['Categoría'] as string) || 'Sin categoría',
+          image: imagenes?.[0]?.url || 'https://via.placeholder.com/400',
+          description: (registro.fields['Descripción'] as string) || 'Sin descripción disponible.',
+          stock: (registro.fields['Unidades disponibles'] as number) || 0,
+        };
+        
+        setProduct(mapeado);
+      } catch (e) {
+        console.error("Error buscando el producto:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    buscarProductoEnAirtable();
+  }, [id]);
+
+  const handleWhatsApp = () => {
+    if (!product) return;
+    const message = encodeURIComponent(
+      `¡Hola Masha Importaciones! Me interesa el producto: *${product.name}* — S/ ${product.price}`
+    );
+    window.open(`https://wa.me/?text=${message}`, "_blank");
+  };
+
+  // PANTALLA DE CARGA
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <p className="text-muted-foreground animate-pulse">Cargando detalles del producto...</p>
+      </div>
+    );
+  }
+
+  // PANTALLA DE ERROR SI NO EXISTE
   if (!product) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <p className="text-muted-foreground">Producto no encontrado.</p>
+        <p className="text-muted-foreground">Producto no encontrado en Airtable.</p>
         <Button variant="outline" onClick={() => navigate("/")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Volver al catálogo
@@ -20,13 +76,6 @@ export function ProductDetail() {
       </div>
     );
   }
-
-  const handleWhatsApp = () => {
-    const message = encodeURIComponent(
-      `Hola! Me interesa el producto: *${product.name}* — S/ ${product.price}`
-    );
-    window.open(`https://wa.me/?text=${message}`, "_blank");
-  };
 
   return (
     <div className="min-h-screen bg-background">
