@@ -92,12 +92,11 @@ export function Catalog() {
       </header>
 
       <div className="flex w-full overflow-hidden">
-        {/* En PC se mantiene en md:w-80. En celular aplica el colapso puro de Figma */}
+        {/* Usamos backticks `` para que las clases dinámicas no rompan la sintaxis */}
         <div
-          className={[
-            "overflow-hidden transition-all duration-300 shrink-0",
-            sidebarOpen ? "w-1/2 md:w-80" : "w-0 md:w-80",
-          ].join(" ")}
+          className={`overflow-hidden transition-all duration-300 shrink-0 ${
+            sidebarOpen ? "w-1/2 md:w-80" : "w-0 md:w-80"
+          }`}
         >
           <FilterSidebar
             filters={filters}
@@ -107,7 +106,7 @@ export function Catalog() {
           />
         </div>
 
-        {/* Le pasamos ÚNICAMENTE lo que ProductGrid espera según Figma */}
+        {/* Corregimos las llaves y comillas de este div que causaban las líneas rojas */}
         <div className={`transition-all duration-300 ${sidebarOpen ? "w-1/2 md:w-full" : "w-full"}`}>
           <ProductGrid products={filteredProducts} sidebarOpen={sidebarOpen} />
         </div>
