@@ -3,22 +3,26 @@ import { ProductCard } from './ProductCard';
 
 interface ProductGridProps {
   products: Product[];
-  loadingFromParent: boolean;
+  sidebarOpen?: boolean;
+  loadingFromParent?: boolean; // 👈 Mantenemos el detector de carga de Airtable
 }
 
-export function ProductGrid({ products, loadingFromParent }: ProductGridProps) {
+export function ProductGrid({ 
+  products, 
+  sidebarOpen = false, 
+  loadingFromParent = false 
+}: ProductGridProps) {
   
+  // ⏳ Si Airtable sigue trayendo los datos, mostramos un mensaje de carga
   if (loadingFromParent) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-96">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground animate-pulse">Cargando productos desde Masha Base...</p>
-        </div>
+        <p className="text-muted-foreground animate-pulse text-lg">Cargando la tienda de Masha...</p>
       </div>
     );
   }
 
+  // 😔 Si ya terminó de cargar pero Airtable no devolvió ningún registro
   if (products.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-96">
@@ -26,23 +30,30 @@ export function ProductGrid({ products, loadingFromParent }: ProductGridProps) {
           <div className="text-6xl">😔</div>
           <h2 className="text-xl font-medium">No hay productos que coincidan</h2>
           <p className="text-muted-foreground">
-            Intenta ajustar tus filtros o agregar productos en Airtable con esta categoría.
+            Intenta ajustar tus filtros o seleccionar diferentes categorías.
           </p>
         </div>
       </div>
     );
   }
 
+  // 📱 Rejilla inteligente de Figma:
+  // En móviles: Renderiza en 2 columnas muy bien distribuidas.
+  // En computadoras (md+): Se expande a 2, 3 o 4 columnas dependiendo del espacio.
+  const gridCols = sidebarOpen
+    ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+    : "grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+
   return (
-    <div className="flex-1 p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold mb-2">Todas las Categorías</h1>
-        <p className="text-muted-foreground">
-          Mostrando {products.length} producto{products.length !== 1 ? 's' : ''} desde Airtable
+    <div className="flex-1 p-4 md:p-6 min-w-0">
+      <div className="mb-4 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-semibold mb-1">Todas las Categorías</h1>
+        <p className="text-muted-foreground text-sm">
+          Mostrando {products.length} producto{products.length !== 1 ? 's' : ''}
         </p>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+      <div className={`grid gap-3 md:gap-6 transition-all duration-300 ${gridCols}`}>
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

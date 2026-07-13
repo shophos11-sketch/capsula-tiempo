@@ -1,5 +1,4 @@
 import { FilterState, CategoryCount } from '../types/product';
-import { categories } from '../data/products';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
@@ -39,7 +38,9 @@ export function FilterSidebar({
   };
 
   return (
-    <div className="w-full md:w-80 bg-card border-b md:border-b-0 md:border-r p-6 space-y-6">
+    // 📱 Aquí aplicamos el truco: w-full en cel, w-80 en PC. 
+    // Además, el borde derecho (border-r) solo se activa en pantallas medianas (md:border-r)
+    <div className="w-full md:w-80 bg-card border-b md:border-b-0 md:border-r p-6 space-y-6 min-w-[200px]">
       <div className="flex items-center justify-between">
         <h2>Filtros</h2>
         <Button 
@@ -54,7 +55,7 @@ export function FilterSidebar({
 
       <Separator />
 
-      {/* Sort Filter */}
+      {/* Ordenar por precio */}
       <div className="space-y-4">
         <h3>Ordenar por precio</h3>
         <RadioGroup value={filters.sortOrder} onValueChange={handleSortChange}>
@@ -75,7 +76,7 @@ export function FilterSidebar({
 
       <Separator />
 
-      {/* Category Filter */}
+      {/* Filtro de Categorías */}
       <div className="space-y-4">
         <h3>Categorías</h3>
         <div className="space-y-3">
