@@ -7,13 +7,15 @@ import { MessageCircle } from "lucide-react";
 import { Product } from "../types/product";
 import Airtable from "airtable";
 
-// 🔌 Conexión segura con Airtable intacta
-const base = new Airtable({ apiKey: import.meta.env.VITE_AIRTABLE_TOKEN })
-  .base(import.meta.env.VITE_AIRTABLE_BASE_ID);
+// Usamos un casteo "as any" rápido para saltarnos el bloqueo estricto de TypeScript con el .env
+const airtableToken = (import.meta as any).env.VITE_AIRTABLE_TOKEN;
+const baseId = (import.meta as any).env.VITE_AIRTABLE_BASE_ID;
+
+const base = new Airtable({ apiKey: airtableToken }).base(baseId);
 
 export function Catalog() {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Eliminamos el estado loading para que coincida exactamente con lo que espera el código de Figma
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const touchStartX = useRef<number | null>(null);
@@ -22,7 +24,6 @@ export function Catalog() {
   const { filters, setFilters, filteredProducts, categoryCounts, resetFilters } =
     useProductFilters(dbProducts);
 
-  // 📡 Hook de Airtable restablecido
   useEffect(() => {
     const cargarProductosParaFiltros = async () => {
       try {
@@ -42,8 +43,6 @@ export function Catalog() {
         setDbProducts(mapeados);
       } catch (e) {
         console.error("Error cargando filtros:", e);
-      } finally {
-        setLoading(false);
       }
     };
     cargarProductosParaFiltros();
@@ -62,7 +61,6 @@ export function Catalog() {
     const diffX = currentX - touchStartX.current;
     const diffY = currentY - touchStartY.current;
 
-    // Solo disparamos el gesto si es un movimiento prioritariamente horizontal
     if (Math.abs(diffX) > Math.abs(diffY)) {
       if (diffX > 40) setSidebarOpen(true);
       if (diffX < -40) setSidebarOpen(false);
@@ -94,7 +92,7 @@ export function Catalog() {
       </header>
 
       <div className="flex w-full overflow-hidden">
-        {/* 💻 En PC: Siempre md:w-80 estático. 📱 En Celular: Se reparte 50% (w-1/2) o se oculta (w-0) */}
+        {/* En PC se mantiene en md:w-80. En celular aplica el colapso puro de Figma */}
         <div
           className={[
             "overflow-hidden transition-all duration-300 shrink-0",
@@ -109,9 +107,9 @@ export function Catalog() {
           />
         </div>
 
-        {/* Contenedor dinámico del Grid para completar la división 50/50 */}
+        {/* Le pasamos ÚNICAMENTE lo que ProductGrid espera según Figma */}
         <div className={`transition-all duration-300 ${sidebarOpen ? "w-1/2 md:w-full" : "w-full"}`}>
-          <ProductGrid products={filteredProducts} sidebarOpen={sidebarOpen} loadingFromParent={loading} />
+          <ProductGrid products={filteredProducts} sidebarOpen={sidebarOpen} />
         </div>
       </div>
     </div>
