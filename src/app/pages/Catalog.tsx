@@ -60,7 +60,7 @@ export function Catalog() {
         </Button>
       </header>
       
-      <div className="flex">
+      <div class="flex flex-col md:flex-row gap-6">
         <FilterSidebar
           filters={filters}
           onFiltersChange={setFilters}

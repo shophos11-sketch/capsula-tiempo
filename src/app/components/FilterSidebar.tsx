@@ -39,7 +39,7 @@ export function FilterSidebar({
   };
 
   return (
-    <div className="w-80 bg-card border-r p-6 space-y-6">
+    <div className="w-full md:w-80 bg-card border-b md:border-b-0 md:border-r p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h2>Filtros</h2>
         <Button 
