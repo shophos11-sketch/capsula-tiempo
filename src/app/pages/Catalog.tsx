@@ -14,15 +14,14 @@ const base = new Airtable({ apiKey: import.meta.env.VITE_AIRTABLE_TOKEN })
 export function Catalog() {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Falso por defecto -> cerrada en móvil
+  const touchStartX = useRef<number | null>(null);
 
-  // 🔄 Conectamos los productos en vivo de Airtable con el hook de filtros
+  // Conectamos con el hook de filtros
   const { filters, setFilters, filteredProducts, categoryCounts, resetFilters } =
     useProductFilters(dbProducts);
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const touchStartX = useRef<number | null>(null);
-
-  // 📡 Efecto que trae tus productos reales de Airtable (¡RECUPERADO!)
+  // 📡 Traemos los productos en vivo de Airtable
   useEffect(() => {
     const cargarProductosParaFiltros = async () => {
       try {
@@ -49,7 +48,7 @@ export function Catalog() {
     cargarProductosParaFiltros();
   }, []);
 
-  // 📱 Gestos táctiles de Figma para abrir/cerrar filtros
+  // Gestos táctiles de Figma
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   };
@@ -57,8 +56,8 @@ export function Catalog() {
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX.current === null) return;
     const delta = e.changedTouches[0].clientX - touchStartX.current;
-    if (delta > 50) setSidebarOpen(true);
-    if (delta < -50) setSidebarOpen(false);
+    if (delta > 50) setSidebarOpen(true);  // Deslizar a la derecha -> abre
+    if (delta < -50) setSidebarOpen(false); // Deslizar a la izquierda -> cierra
     touchStartX.current = null;
   };
 
@@ -81,7 +80,7 @@ export function Catalog() {
       </header>
 
       <div className="flex">
-        {/* Contenedor del Filtro adaptable de Figma */}
+        {/* Contenedor de la barra: En cel usa w-1/2 (mitad) o w-0. En desktop siempre w-80 */}
         <div
           className={[
             "overflow-hidden transition-all duration-300 shrink-0",
@@ -97,8 +96,12 @@ export function Catalog() {
           />
         </div>
 
-        {/* Carga el Grid pasándole si el sidebar está abierto o no */}
-        <ProductGrid products={filteredProducts} sidebarOpen={sidebarOpen} />
+        {/* Le pasamos el estado de carga de Airtable y si la barra está abierta */}
+        <ProductGrid 
+          products={filteredProducts} 
+          sidebarOpen={sidebarOpen} 
+          loadingFromParent={loading} 
+        />
       </div>
     </div>
   );

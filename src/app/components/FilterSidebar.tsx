@@ -38,9 +38,8 @@ export function FilterSidebar({
   };
 
   return (
-    // 📱 Aquí aplicamos el truco: w-full en cel, w-80 en PC. 
-    // Además, el borde derecho (border-r) solo se activa en pantallas medianas (md:border-r)
-    <div className="w-full md:w-80 bg-card border-b md:border-b-0 md:border-r p-6 space-y-6 min-w-[200px]">
+    // Conservamos las clases de Figma para el ancho responsivo controlado
+    <div className="w-80 md:w-80 w-full bg-card border-r p-6 space-y-6 min-w-[200px]">
       <div className="flex items-center justify-between">
         <h2>Filtros</h2>
         <Button 
@@ -55,7 +54,7 @@ export function FilterSidebar({
 
       <Separator />
 
-      {/* Ordenar por precio */}
+      {/* Sort Filter */}
       <div className="space-y-4">
         <h3>Ordenar por precio</h3>
         <RadioGroup value={filters.sortOrder} onValueChange={handleSortChange}>
@@ -76,7 +75,7 @@ export function FilterSidebar({
 
       <Separator />
 
-      {/* Filtro de Categorías */}
+      {/* Category Filter */}
       <div className="space-y-4">
         <h3>Categorías</h3>
         <div className="space-y-3">

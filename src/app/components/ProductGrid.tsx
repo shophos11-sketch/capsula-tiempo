@@ -4,7 +4,7 @@ import { ProductCard } from './ProductCard';
 interface ProductGridProps {
   products: Product[];
   sidebarOpen?: boolean;
-  loadingFromParent?: boolean; // 👈 Mantenemos el detector de carga de Airtable
+  loadingFromParent?: boolean; // Mantenemos el estado de carga
 }
 
 export function ProductGrid({ 
@@ -13,16 +13,15 @@ export function ProductGrid({
   loadingFromParent = false 
 }: ProductGridProps) {
   
-  // ⏳ Si Airtable sigue trayendo los datos, mostramos un mensaje de carga
+  // Si Airtable está cargando, mostramos la pantalla de carga limpia
   if (loadingFromParent) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-96">
-        <p className="text-muted-foreground animate-pulse text-lg">Cargando la tienda de Masha...</p>
+        <p className="text-muted-foreground animate-pulse text-lg">Cargando catálogo...</p>
       </div>
     );
   }
 
-  // 😔 Si ya terminó de cargar pero Airtable no devolvió ningún registro
   if (products.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-96">
@@ -30,16 +29,15 @@ export function ProductGrid({
           <div className="text-6xl">😔</div>
           <h2 className="text-xl font-medium">No hay productos que coincidan</h2>
           <p className="text-muted-foreground">
-            Intenta ajustar tus filtros o seleccionar diferentes categorías.
+            Intenta ajustar tus filtros o seleccionar diferentes categorías
           </p>
         </div>
       </div>
     );
   }
 
-  // 📱 Rejilla inteligente de Figma:
-  // En móviles: Renderiza en 2 columnas muy bien distribuidas.
-  // En computadoras (md+): Se expande a 2, 3 o 4 columnas dependiendo del espacio.
+  // 📱 Mobile: 1 columna cuando la barra está abierta (sidebarOpen === true)
+  //            2 columnas cuando está oculta (sidebarOpen === false)
   const gridCols = sidebarOpen
     ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
     : "grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
