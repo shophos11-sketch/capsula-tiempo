@@ -38,8 +38,8 @@ export function FilterSidebar({
   };
 
   return (
-    // Quitamos los anchos fijos contradictorios para amoldarse al split animado
-    <div className="w-full h-full bg-card border-r p-6 space-y-6 min-w-[160px] md:min-w-[200px]">
+    /* 🎯 ¡Bug corregido aquí! Se removió el min-w-[200px]. Ahora mide w-80 fijo */
+    <div className="w-80 bg-card border-r p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h2>Filtros</h2>
         <Button 
@@ -54,26 +54,28 @@ export function FilterSidebar({
 
       <Separator />
 
+      {/* Sort Filter */}
       <div className="space-y-4">
         <h3>Ordenar por precio</h3>
         <RadioGroup value={filters.sortOrder} onValueChange={handleSortChange}>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="highest" id="highest" />
-            <Label htmlFor="highest" className="cursor-pointer text-sm">Mayor precio</Label>
+            <Label htmlFor="highest" className="cursor-pointer">Mayor precio</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="lowest" id="lowest" />
-            <Label htmlFor="lowest" className="cursor-pointer text-sm">Menor precio</Label>
+            <Label htmlFor="lowest" className="cursor-pointer">Menor precio</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="none" id="none" />
-            <Label htmlFor="none" className="cursor-pointer text-sm">Sin ordenar</Label>
+            <Label htmlFor="none" className="cursor-pointer">Sin ordenar</Label>
           </div>
         </RadioGroup>
       </div>
 
       <Separator />
 
+      {/* Category Filter */}
       <div className="space-y-4">
         <h3>Categorías</h3>
         <div className="space-y-3">
@@ -86,10 +88,10 @@ export function FilterSidebar({
               />
               <label 
                 htmlFor={categoryCount.category}
-                className="flex-1 text-sm cursor-pointer flex items-center justify-between min-w-0"
+                className="flex-1 text-sm cursor-pointer flex items-center justify-between"
               >
-                <span className="truncate mr-1">{categoryCount.category}</span>
-                <Badge variant="secondary" className="text-xs shrink-0">
+                <span>{categoryCount.category}</span>
+                <Badge variant="secondary" className="ml-2 text-xs">
                   {categoryCount.count}
                 </Badge>
               </label>
