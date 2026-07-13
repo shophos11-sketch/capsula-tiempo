@@ -7,21 +7,23 @@ import { MessageCircle } from "lucide-react";
 import { Product } from "../types/product";
 import Airtable from "airtable";
 
-// 🔌 Conexión segura con Airtable (¡INTACTA!)
+// 🔌 Conexión segura con Airtable
 const base = new Airtable({ apiKey: import.meta.env.VITE_AIRTABLE_TOKEN })
   .base(import.meta.env.VITE_AIRTABLE_BASE_ID);
 
 export function Catalog() {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Falso por defecto -> cerrada en móvil
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Oculto por defecto en celular
+  
+  // Guardamos tanto la posición X como la Y para evitar que el scroll vertical interfiera
   const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
-  // Conectamos con el hook de filtros
   const { filters, setFilters, filteredProducts, categoryCounts, resetFilters } =
     useProductFilters(dbProducts);
 
-  // 📡 Traemos los productos en vivo de Airtable
+  // 📡 Traemos tus productos de Airtable
   useEffect(() => {
     const cargarProductosParaFiltros = async () => {
       try {
@@ -48,17 +50,35 @@ export function Catalog() {
     cargarProductosParaFiltros();
   }, []);
 
-  // Gestos táctiles de Figma
+  // 📱 Captura de inicio del toque en celular
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const delta = e.changedTouches[0].clientX - touchStartX.current;
-    if (delta > 50) setSidebarOpen(true);  // Deslizar a la derecha -> abre
-    if (delta < -50) setSidebarOpen(false); // Deslizar a la izquierda -> cierra
+  // 📱 Captura del movimiento del dedo para evitar conflictos con el scroll de la página
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+
+    const diffX = currentX - touchStartX.current;
+    const diffY = currentY - touchStartY.current;
+
+    // Si el movimiento horizontal es mayor que el vertical, asumimos que quiere filtrar
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 40) {
+        setSidebarOpen(true); // Deslizar derecha -> abre
+      } else if (diffX < -40) {
+        setSidebarOpen(false); // Deslizar izquierda -> cierra
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
     touchStartX.current = null;
+    touchStartY.current = null;
   };
 
   const handleWhatsAppClick = () => {
@@ -67,8 +87,9 @@ export function Catalog() {
 
   return (
     <div
-      className="min-h-screen bg-background"
+      className="min-h-screen bg-background select-none"
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       <header className="bg-card border-b px-6 py-3 flex items-center justify-between">
@@ -79,13 +100,13 @@ export function Catalog() {
         </Button>
       </header>
 
-      <div className="flex">
-        {/* Contenedor de la barra: En cel usa w-1/2 (mitad) o w-0. En desktop siempre w-80 */}
+      <div className="flex w-full overflow-hidden">
+        {/* Contenedor de la Barra de Filtros animada (Se encoge al 50% en móvil si se abre) */}
         <div
           className={[
-            "overflow-hidden transition-all duration-300 shrink-0",
-            "md:w-80",
-            sidebarOpen ? "w-1/2" : "w-0",
+            "transition-all duration-300 shrink-0",
+            "md:w-80", // En PC mide 320px como siempre
+            sidebarOpen ? "w-1/2 opacity-100" : "w-0 opacity-0 pointer-events-none", // En móvil 50% de la pantalla o 0%
           ].join(" ")}
         >
           <FilterSidebar
@@ -96,12 +117,10 @@ export function Catalog() {
           />
         </div>
 
-        {/* Le pasamos el estado de carga de Airtable y si la barra está abierta */}
-        <ProductGrid 
-          products={filteredProducts} 
-          sidebarOpen={sidebarOpen} 
-          loadingFromParent={loading} 
-        />
+        {/* Contenedor de los Productos (Se reduce al 50% en móvil si la barra se abre) */}
+        <div className={sidebarOpen ? "w-1/2 transition-all duration-300" : "w-full transition-all duration-300"}>
+          <ProductGrid products={filteredProducts} sidebarOpen={sidebarOpen} loadingFromParent={loading} />
+        </div>
       </div>
     </div>
   );
